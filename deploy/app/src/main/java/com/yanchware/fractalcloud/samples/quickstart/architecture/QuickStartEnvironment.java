@@ -20,14 +20,14 @@ public class QuickStartEnvironment {
     this.environmentAggregate = environmentAggregate;
   }
 
-  public void deploy(List<FractalSystem> fractalBankSystems) throws InstantiatorException {
+  public void deploy(List<FractalSystem> fractalSystems) throws InstantiatorException {
     var instantiationConfig =
       InstantiationConfiguration.builder().withWaitConfiguration(InstantiationWaitConfiguration.builder()
         .withWaitForInstantiation(true)
         .withTimeoutMinutes(30)
         .build()).build();
 
-    automaton.instantiate(fractalBankSystems.stream()
+    automaton.instantiate(fractalSystems.stream()
       .map(x -> automaton.getLiveSystemBuilder()
         .withId(x.liveSystemId())
         .withFractalId(x.fractalId())
@@ -38,6 +38,6 @@ public class QuickStartEnvironment {
       .toList(), instantiationConfig);
   }
 
-  public void delete(List<LiveSystemIdValue> fractalBankSystemIds) throws InstantiatorException {
-    automaton.delete(fractalBankSystemIds);
+  public void delete(List<LiveSystemIdValue> fractalSystemIds) throws InstantiatorException {
+    automaton.delete(fractalSystemIds);
   }}
