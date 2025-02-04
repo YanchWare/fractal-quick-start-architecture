@@ -1,0 +1,133 @@
+name: Architecture Cleanup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.10.2
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        id: cache-restore
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: architecture-dependencies
+
+      - name: Build with Gradle
+        working-directory: architecture/app
+        run: gradle clean test distTar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-tar
+          path: architecture/app/build/distributions/architecture.tar
+
+      - name: Save dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: architecture-dependencies
+
+  deploy-development:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: architecture-tar
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Deploy to Development
+        run: |
+          tar -xvf architecture.tar
+          ./architecture/bin/architecture delete
+        env:
+          AZURE_SP_CLIENT_ID: ${{ secrets.AZURE_SP_CLIENT_ID }}
+          AZURE_SP_CLIENT_SECRET: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+          CI_CD_SERVICE_ACCOUNT_NAME: ${{ secrets.FRACTAL_BANK_DEVELOPMENT_VMS_SOLUTIONS_CI_CD_SERVICE_ACCOUNT_NAME }}
+          CI_CD_SERVICE_ACCOUNT_SECRET: ${{ secrets.FRACTAL_BANK_DEVELOPMENT_VMS_SOLUTIONS_CI_CD_SERVICE_ACCOUNT_SECRET }}
+          POSTGRES_READER_USER: ${{ secrets.DEVELOPMENT_POSTGRES_READER_USER }}
+          POSTGRES_READER_PASSWORD: ${{ secrets.DEVELOPMENT_POSTGRES_READER_PASSWORD }}
+          FRACTAL_BANK_ENVIRONMENT: DEVELOPMENT
+
+  deploy-staging:
+    needs: deploy-development
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: architecture-tar
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Deploy to Staging
+        run: |
+          tar -xvf architecture.tar
+          ./architecture/bin/architecture delete
+        env:
+          AZURE_SP_CLIENT_ID: ${{ secrets.AZURE_SP_CLIENT_ID }}
+          AZURE_SP_CLIENT_SECRET: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+          CI_CD_SERVICE_ACCOUNT_NAME: ${{ secrets.FRACTAL_BANK_STAGING_CONTAINERS_CI_CD_SERVICE_ACCOUNT_NAME }}
+          CI_CD_SERVICE_ACCOUNT_SECRET: ${{ secrets.FRACTAL_BANK_STAGING_CONTAINERS_CI_CD_SERVICE_ACCOUNT_SECRET }}
+          POSTGRES_READER_USER: ${{ secrets.STAGING_POSTGRES_READER_USER }}
+          POSTGRES_READER_PASSWORD: ${{ secrets.STAGING_POSTGRES_READER_PASSWORD }}
+          FRACTAL_BANK_ENVIRONMENT: STAGING
+
+  deploy-production:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: architecture-tar
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Deploy to Production
+        run: |
+          tar -xvf architecture.tar
+          ./architecture/bin/architecture delete
+        env:
+          AZURE_SP_CLIENT_ID: ${{ secrets.AZURE_SP_CLIENT_ID }}
+          AZURE_SP_CLIENT_SECRET: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
+          CI_CD_SERVICE_ACCOUNT_NAME: ${{ secrets.FRACTAL_BANK_PRODUCTION_CONTAINERS_CI_CD_SERVICE_ACCOUNT_NAME }}
+          CI_CD_SERVICE_ACCOUNT_SECRET: ${{ secrets.FRACTAL_BANK_PRODUCTION_CONTAINERS_CI_CD_SERVICE_ACCOUNT_SECRET }}
+          POSTGRES_READER_USER: ${{ secrets.PRODUCTION_POSTGRES_READER_USER }}
+          POSTGRES_READER_PASSWORD: ${{ secrets.PRODUCTION_POSTGRES_READER_PASSWORD }}
+          FRACTAL_BANK_ENVIRONMENT: PRODUCTION
