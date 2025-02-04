@@ -72,7 +72,7 @@ jobs:
           AZURE_SP_CLIENT_SECRET: ${{ secrets.AZURE_SP_CLIENT_SECRET }}
           CI_CD_SERVICE_ACCOUNT_NAME: ${{ secrets.NON_PRODUCTION_CI_CD_SERVICE_ACCOUNT_NAME }}
           CI_CD_SERVICE_ACCOUNT_SECRET: ${{ secrets.NON_PRODUCTION_CI_CD_SERVICE_ACCOUNT_SECRET }}
-          ENVIRONMENT: DEVELOPMENT
+          ENVIRONMENT: NON_PRODUCTION
 
   deploy-production:
     needs: deploy-non-production
