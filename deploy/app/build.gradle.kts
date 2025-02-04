@@ -34,7 +34,7 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    mainClass = "com.yanchware.fractalcloud.samples.quickstart.architecture.deploy.App"
 }
 
 tasks.named<Test>("test") {
