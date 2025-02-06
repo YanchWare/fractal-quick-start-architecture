@@ -10,6 +10,7 @@ import com.yanchware.fractalcloud.samples.quickstart.architecture.deploy.livesys
 
 import java.util.List;
 
+import static com.yanchware.fractalcloud.samples.quickstart.architecture.Constants.FRACTAL_NON_PRODUCTION_OPERATIONAL_RESOURCE_GROUP_ID;
 import static com.yanchware.fractalcloud.samples.quickstart.architecture.Constants.FRACTAL_PRODUCTION_OPERATIONAL_RESOURCE_GROUP_ID;
 
 public class App {
@@ -42,10 +43,13 @@ public class App {
   }
 
   private static List<FractalSystem> getLiveSystems(Environment environment) {
+    var resourceGroupId = environment == Environment.PRODUCTION
+      ? FRACTAL_PRODUCTION_OPERATIONAL_RESOURCE_GROUP_ID
+      : FRACTAL_NON_PRODUCTION_OPERATIONAL_RESOURCE_GROUP_ID;
     return List.of(
       new Containers(
-        new LiveSystemIdValue(FRACTAL_PRODUCTION_OPERATIONAL_RESOURCE_GROUP_ID.toString(), "containers"),
-        FRACTAL_PRODUCTION_OPERATIONAL_RESOURCE_GROUP_ID,
+        new LiveSystemIdValue(resourceGroupId.toString(), "containers"),
+        resourceGroupId,
         "Containerized workloads",
         environment));
   }
