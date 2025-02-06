@@ -1,16 +1,12 @@
 package com.yanchware.fractalcloud.samples.quickstart.architecture.deploy.livesystems;
 
 
-import com.yanchware.fractal.sdk.domain.ComponentLink;
 import com.yanchware.fractal.sdk.domain.blueprint.FractalIdValue;
 import com.yanchware.fractal.sdk.domain.livesystem.LiveSystemComponent;
 import com.yanchware.fractal.sdk.domain.livesystem.LiveSystemIdValue;
 import com.yanchware.fractal.sdk.domain.livesystem.caas.CaaSAmbassador;
 import com.yanchware.fractal.sdk.domain.livesystem.caas.CaaSElasticLogging;
-import com.yanchware.fractal.sdk.domain.livesystem.caas.CaaSKubernetesWorkload;
 import com.yanchware.fractal.sdk.domain.livesystem.caas.CaaSPrometheus;
-import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.AzurePostgreSqlDatabase;
-import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.AzurePostgreSqlDbms;
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.AzureRegion;
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.AzureResourceGroup;
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.aks.AzureKubernetesService;
@@ -85,14 +81,10 @@ public record Containers(
       .withTag("Purpose", "Samples")
       .build();
 
-    var dbmsId = String.format("sql-%s", liveSystemId.name());
-    var dbId = String.format("%s-nice-db", dbmsId);
-    var db = getSqlDbms(dbmsId, dbId, resourceGroup);
-    var aks = getAks(String.format("aks-%s", liveSystemId.name()), dbId, resourceGroup, environment);
+    var aks = getAks(String.format("aks-%s", liveSystemId.name()), resourceGroup, environment);
     var cosmosDb = getAzureCosmosPostgreSqlDatabase(String.format("cosmos-%s", liveSystemId.name()), resourceGroup);
 
-
-    return List.of(aks, db, cosmosDb);
+    return List.of(aks, cosmosDb);
   }
 
   private AzureCosmosPostgreSqlDbms getAzureCosmosPostgreSqlDatabase(String id, AzureResourceGroup resourceGroup) {
@@ -108,23 +100,8 @@ public record Containers(
       .build();
   }
 
-  private AzurePostgreSqlDbms getSqlDbms(String id, String dbId, AzureResourceGroup resourceGroup) {
-    return AzurePostgreSqlDbms.builder()
-      .withId(id)
-      .withDisplayName(id)
-      .withRegion(resourceGroup.getRegion())
-      .withDatabase(
-        AzurePostgreSqlDatabase.builder()
-          .withId(dbId)
-          .withDisplayName(dbId)
-          .withName(dbId)
-          .build())
-      .build();
-  }
-
   private AzureKubernetesService getAks(
     String id,
-    String dbId,
     AzureResourceGroup resourceGroup,
     Environment environment)
   {
@@ -135,8 +112,7 @@ public record Containers(
       .withResourceGroup(resourceGroup)
       .withAPIGateway(getAmbassador())
       .withNodePools(getNodePools(environment))
-      .withMonitoring(getMonitoringSolution())
-      .withK8sWorkloadInstances(getK8sWorkloads(dbId));
+      .withMonitoring(getMonitoringSolution());
 
     if (environment == Environment.NON_PRODUCTION) {
       builder.withLogging(getLoggingSolution());
@@ -171,53 +147,6 @@ public record Containers(
       .withNamespace("monitoring")
       .build();
   }
-
-  private Collection<? extends CaaSKubernetesWorkload> getK8sWorkloads(String dbId) {
-    var namespace = "app";
-
-    var repoId = "fractal-bank-demo";
-    var repositoryUri = String.format("git@github.com:YanchWare/%s.git", repoId);
-
-    var liveSystemName = liveSystemId.name();
-    var branchName = liveSystemName.toLowerCase();
-
-    var privateSshKeySecretId = String.format("%s-fractal-deployer-ssh-private-key", liveSystemName);
-    var privateSshPassphraseSecretId = String.format("%s-fractal-deployer-ssh-private-key-passphrase", liveSystemName);
-
-    return List.of(
-      CaaSKubernetesWorkload.builder()
-        .withId("app-reader")
-        .withDisplayName("app-reader")
-        .withDescription(String.format("App Reader %s", liveSystemName))
-        .withSSHRepositoryURI(repositoryUri)
-        .withRepoId(repoId)
-        .withBranchName(branchName)
-        .withPrivateSSHKeySecretId(privateSshKeySecretId)
-        .withPrivateSSHKeyPassphraseSecretId(privateSshPassphraseSecretId)
-        .withNamespace(namespace)
-        .withLink(ComponentLink.builder()
-          .withComponentId(dbId)
-          .withRoleName("reader")
-          .build())
-        .build(),
-      CaaSKubernetesWorkload.builder()
-        .withId("app-writer")
-        .withDisplayName("app-writer")
-        .withDescription(String.format("App Writer %s", liveSystemName))
-        .withSSHRepositoryURI(repositoryUri)
-        .withRepoId(repoId)
-        .withBranchName(branchName)
-        .withPrivateSSHKeySecretId(privateSshKeySecretId)
-        .withPrivateSSHKeyPassphraseSecretId(privateSshPassphraseSecretId)
-        .withNamespace(namespace)
-        .withLink(ComponentLink.builder()
-          .withComponentId(dbId)
-          .withRoleName("admin")
-          .build())
-        .build()
-    );
-  }
-
 }
 
 
