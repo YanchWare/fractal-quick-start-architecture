@@ -92,7 +92,7 @@ public record Containers(
       .withId(id)
       .withDisplayName(id)
       .withAzureResourceGroup(resourceGroup)
-      .withCosmosEntity(
+      .withDatabase(
         AzureCosmosPostgreSqlDatabase.builder()
           .withId(String.format("%s-nice-db", id))
           .withDisplayName(id)
