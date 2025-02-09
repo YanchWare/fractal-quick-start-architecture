@@ -18,7 +18,7 @@ repositories {
 dependencies {
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
-    implementation("com.yanchware:fractal.sdk:12.1.0")
+    implementation("com.yanchware:fractal.sdk:12.1.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // This dependency is used by the application.

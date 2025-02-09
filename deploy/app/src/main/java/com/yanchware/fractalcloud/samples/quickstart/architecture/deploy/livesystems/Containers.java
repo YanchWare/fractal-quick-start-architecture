@@ -11,7 +11,6 @@ import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.AzureReg
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.AzureResourceGroup;
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.aks.AzureKubernetesService;
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.aks.AzureNodePool;
-import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.cosmos.AzureCosmosPostgreSqlDatabase;
 import com.yanchware.fractal.sdk.domain.livesystem.paas.providers.azure.cosmos.AzureCosmosPostgreSqlDbms;
 import com.yanchware.fractalcloud.samples.quickstart.architecture.deploy.configuration.Environment;
 
@@ -92,11 +91,6 @@ public record Containers(
       .withId(id)
       .withDisplayName(id)
       .withAzureResourceGroup(resourceGroup)
-      .withDatabase(
-        AzureCosmosPostgreSqlDatabase.builder()
-          .withId(String.format("%s-nice-db", id))
-          .withDisplayName(id)
-          .build())
       .build();
   }
 
