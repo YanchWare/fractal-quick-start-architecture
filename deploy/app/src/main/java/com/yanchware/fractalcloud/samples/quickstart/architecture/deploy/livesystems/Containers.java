@@ -81,7 +81,7 @@ public record Containers(
       .build();
 
     var aks = getAks(String.format("aks-%s", liveSystemId.name()), resourceGroup, environment);
-    var cosmosDb = getAzureCosmosPostgreSqlDatabase(String.format("cosmos-%s", environment.toString().toLowerCase()), resourceGroup);
+    var cosmosDb = getAzureCosmosPostgreSqlDatabase(String.format("cosmos-%s", environment.toString().toLowerCase().replace("_", "-")), resourceGroup);
 
     return List.of(aks, cosmosDb);
   }
